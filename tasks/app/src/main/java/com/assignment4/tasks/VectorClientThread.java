@@ -3,6 +3,9 @@ package com.assignment4.tasks;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class VectorClientThread implements Runnable {
 
@@ -20,15 +23,31 @@ public class VectorClientThread implements Runnable {
 
     @Override
     public void run() {
-        String response = "example:[1,1.0.0]"; //update this with the real response string from server
-        /*
-         * Write your code to receive messgaes from the server and update the vector clock
-         */
-        String[] responseMessageArray = response.split(":");
-        /*
-         * you could use "replaceAll("\\p{Punct}", " ").trim().split("\\s+");" for filteing the received message timestamps
-         * update clock and increament local clock (tick) for receiving the message
-         */
-        System.out.println("Server:" +responseMessageArray[0] +" "+ vcl.showClock());
+        try {
+            // receive messages from server
+            DatagramPacket receivedPacket = new DatagramPacket(receiveData, receiveData.length);
+            clientSocket.receive(receivedPacket);
+            String response = new String(receivedPacket.getData(), 0, receivedPacket.getLength());
+            String[] responseMessageArray = response.split(":");
+
+            // filter received message timestamps
+            String[] receivedValues = responseMessageArray[1].replaceAll("\\p{Punct}", " ").trim().split("\\s+");
+            // parse the values
+            int processId = Integer.parseInt(receivedValues[0]);
+            int time = Integer.parseInt(receivedValues[1]);
+
+            // update and increment local clock
+            VectorClock vectorClock = new VectorClock(4);
+            vectorClock.setVectorClock(processId, time);
+            vcl.updateClock(vectorClock);
+
+            // print message & vector timestamp
+            System.out.println("Server:" + responseMessageArray[0] + " " + vcl.showClock());
+
+        } catch (Exception e){
+            e.printStackTrace();
+        }
     }
+
+
 }

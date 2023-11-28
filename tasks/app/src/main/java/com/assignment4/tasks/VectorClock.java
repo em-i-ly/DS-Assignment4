@@ -14,13 +14,17 @@ public class VectorClock {
         timestamps[processId] = time;
     }
     public void tick(int processId){
-        timestamps[processId] = 0; // update the code to increment the clock for the given process id
+        // increment the clock for the given process id
+        timestamps[processId] += 1;
     }
     public int getCurrentTimestamp(int processId){
         return timestamps[processId];
     }
     public void updateClock(VectorClock other){
-        // update the clock with the incoming clock value
+        // update the clock with the incoming clock value (use for-loop to iterate over values in array)
+        for (int i = 0; i < timestamps.length; i++) {
+            timestamps[i] = Math.max(timestamps[i], other.getCurrentTimestamp(i));
+        }
     }
     public String showClock(){
         return Arrays.toString(timestamps);

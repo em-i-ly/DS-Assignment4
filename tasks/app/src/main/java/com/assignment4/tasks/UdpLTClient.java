@@ -1,6 +1,7 @@
 package com.assignment4.tasks;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -32,31 +33,31 @@ public class UdpLTClient {
 
 
         while(true) {
+            // create message body to send to server
+            String messageBody = input.nextLine();
+            int messageTime = lc.getCurrentTimestamp();
+            String responseMessage = messageBody + ':' + messageTime;
 
-                String messageBody = input.nextLine();
-                int messageTime = lc.getCurrentTimestamp();
-                String responseMessage = messageBody + ':' + messageTime;
+            // increment clock
+            lc.tick();
 
-                /*
-                 * write your code to increment clock when the message is sent
-                 */
+            // check if the user wants to quit
+            if(messageBody.equalsIgnoreCase("quit")){
+                clientSocket.close();
+                System.exit(1);
+            }
 
-                // check if the user wants to quit
-                if(messageBody.equalsIgnoreCase("quit")){
-                    clientSocket.close();
-                    System.exit(1);
-                }
+            // put response message in datagram packet after being formatted correctly (in bytes)
+            sendData = responseMessage.getBytes();
+            DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, IPAddress, port);
 
-                /*
-                 * write your code to send the message to the server
-                 */
+            // send packet to server
+            clientSocket.send(sendPacket);
 
-                LTClientThread client;
-                client = new LTClientThread(clientSocket, lc);
-                Thread receiverThread = new Thread(client);
-                receiverThread.start();
-
+            LTClientThread client;
+            client = new LTClientThread(clientSocket, lc);
+            Thread receiverThread = new Thread(client);
+            receiverThread.start();
         }
-
     }
 }
